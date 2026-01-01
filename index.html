@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecologia: A Teia da Vida - Plataforma Interativa</title>
+    <style>
+        /* ========================================
+        DESIGN SYSTEM: CLÁSSICO / HISTÓRICO 
+        ========================================
+        */
+        :root {
+            --primary-color: #2d5a27; /* Verde floresta profundo */
+            --accent-color: #8b4513;  /* Marrom couro/terra */
+            --bg-color: #fdfaf1;      /* Tom de pergaminho claro */
+            --text-color: #2c2c2c;
+            --white: #ffffff;
+            --border-color: #d1c7a7;
+            --success: #4a7c44;
+            --error: #a33b3b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 2rem 1rem;
+            text-align: center;
+            border-bottom: 5px solid var(--accent-color);
+        }
+
+        header h1 {
+            font-variant: small-caps;
+            letter-spacing: 2px;
+            font-size: 2.2rem;
+        }
+
+        /* Navegação */
+        nav {
+            background: var(--white);
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-family: inherit;
+            font-weight: bold;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        nav button.active {
+            border-bottom: 3px solid var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        /* Conteúdo Principal */
+        main {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .section-view {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section-view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Infografia */
+        .infografia-container {
+            width: 100%;
+            margin-bottom: 2rem;
+            border: 8px double var(--border-color);
+            padding: 5px;
+            background: white;
+        }
+
+        .infografia-container img {
+            width: 100%;
+            display: block;
+            border-radius: 2px;
+        }
+
+        /* Acordeão */
+        .accordion-item {
+            border: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .accordion-header {
+            background: #f1ede1;
+            padding: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .accordion-content {
+            padding: 1.5rem;
+            display: none;
+        }
+
+        .accordion-item.open .accordion-content {
+            display: block;
+        }
+
+        /* Flashcards */
+        .card {
+            width: 100%;
+            max-width: 500px;
+            height: 300px;
+            perspective: 1000px;
+            cursor: pointer;
+            margin: 0 auto;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border-radius: 10px;
+            border: 2px solid var(--accent-color);
+            background: white;
+        }
+
+        .card-back { background-color: var(--primary-color); color: white; transform: rotateY(180deg); }
+
+        /* Glossário */
+        .glossary-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .glossary-item {
+            background: white;
+            padding: 1rem;
+            border-left: 4px solid var(--primary-color);
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Quiz & Feedback */
+        .quiz-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            text-align: left;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+
+        .option-btn:hover:not(:disabled) { background: #f1f1f1; border-color: var(--primary-color); }
+        .option-btn.correct { background-color: #d4edda !important; border-color: #c3e6cb; color: #155724; font-weight: bold; }
+        .option-btn.wrong { background-color: #f8d7da !important; border-color: #f5c6cb; color: #721c24; }
+
+        .feedback-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .feedback-correct { background-color: #d4edda; color: #155724; border-left: 5px solid #28a745; }
+        .feedback-wrong { background-color: #fff3cd; color: #856404; border-left: 5px solid #ffc107; }
+
+        .btn-action {
+            padding: 0.8rem 1.5rem;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .report-card {
+            background: white;
+            border: 2px solid var(--accent-color);
+            padding: 2rem;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-item { padding: 1rem; background: #f1ede1; border-radius: 5px; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; color: var(--primary-color); }
+
+        .score-board {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 2000;
+        }
+
+        .matching-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .matching-item { padding: 1rem; border: 1px dashed var(--accent-color); cursor: pointer; text-align: center; background: white; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        .matching-item.selected { background-color: #fff3cd; border-style: solid; }
+        .matching-item.matched { visibility: hidden; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Ecologia & A Teia da Vida</h1>
+        <p>Explorando a Magia e o Equilíbrio da Natureza</p>
+    </header>
+
+    <nav>
+        <button onclick="showSection('sala-estudo')" id="nav-sala-estudo" class="active">Sala de Estudo</button>
+        <button onclick="showSection('multimedia')" id="nav-multimedia">Galeria Multimédia</button>
+        <button onclick="showSection('flashcards')" id="nav-flashcards">Flashcards</button>
+        <button onclick="showSection('glossario')" id="nav-glossario">Glossário</button>
+        <button onclick="showSection('desafios')" id="nav-desafios">Aprendizagem Ativa</button>
+    </nav>
+
+    <main id="app-content">
+        <section id="sala-estudo" class="section-view active">
+            <div class="infografia-container">
+                <img src="./infografia.jpg" alt="Infografia da Floresta Dourada" onerror="this.src='https://via.placeholder.com/1000x400?text=Infografia:+A+Teia+de+Interações'">
+                <p style="font-size: 0.8rem; text-align: right; margin-top: 5px; font-style: italic;">Referência: Infografia Florestal</p>
+            </div>
+            <div id="accordion-container"></div>
+        </section>
+
+        <section id="multimedia" class="section-view">
+            <h2>Recursos Multimédia</h2>
+            <div class="media-gallery" id="media-display"></div>
+        </section>
+
+        <section id="flashcards" class="section-view">
+            <div class="flashcards-grid">
+                <h2 style="text-align: center; margin-bottom: 2rem;">Flashcards de Revisão</h2>
+                <div id="flashcard-display"></div>
+            </div>
+        </section>
+
+        <section id="glossario" class="section-view">
+            <h2>Glossário de Termos</h2>
+            <div id="glossary-display" class="glossary-list"></div>
+        </section>
+
+        <section id="desafios" class="section-view">
+            <div id="active-learning-menu">
+                <h2 style="margin-bottom: 1.5rem;">Atividades de Aprendizagem</h2>
+                <div style="display: grid; gap: 1rem;">
+                    <button class="btn-action" onclick="initQuiz()">Iniciar Questionário</button>
+                    <button class="btn-action" onclick="initMatchGame()">Minijogo de Associação</button>
+                    <button class="btn-action" onclick="showEcologicalChallenge()">Os Desafios Ecológicos</button>
+                </div>
+            </div>
+            <div id="challenge-workspace" style="margin-top: 2rem;"></div>
+        </section>
+    </main>
+
+    <div class="score-board" id="global-score">0</div>
+
+    <script>
+        /* ========================================
+        DADOS DA APLICAÇÃO (APP_DATA)
+        ========================================
+        */
+        const APP_DATA = {
+            summaries: [
+                {
+                    title: "1. Uma História Sobre a Magia do Ecossistema",
+                    topics: [
+                        { name: "1.1. Bem-vindo à Floresta Dourada", content: "Imagine um lugar onde a vida pulsa em cada folha. A Floresta Dourada é um ecossistema complexo, uma autêntica teia de vida onde cada ser depende de todos os outros para sobreviver." },
+                        { name: "1.2. Os Habitantes da Floresta e os Seus Papéis", content: "<b>Produtores:</b> A cozinha da floresta (plantas e musgos) que fazem fotossíntese.<br><b>Consumidores:</b> Organismos que obtêm energia alimentando-se de outros seres.<br><b>Decompositores:</b> Os zeladores (bactérias e fungos) que reciclam a matéria morta." },
+                        { name: "1.3. O Anúncio da Grande Trégua", content: "Nesta noite mágica, as regras de predação são suspensas. É uma metáfora para o delicado equilíbrio e a coexistência necessária para a manutenção do ecossistema." },
+                        { name: "1.4. A Preparar a Festa", content: "A organização da vida exige um fluxo constante de nutrientes. Cada ser vivo prepara o terreno para o próximo nível trófico." },
+                        { name: "1.5. O Grande Banquete", content: "Representa o clímax da transferência de energia. Num ecossistema, a energia flui de forma unidirecional enquanto a matéria circula." },
+                        { name: "1.6. O Segredo da Floresta", content: "O segredo é a cooperação. Lynn Margulis mostrou com a Simbiogénese que a vida complexa é o resultado da fusão e trégua entre organismos simples." }
+                    ]
+                },
+                {
+                    title: "2. A Teia de Interações na Natureza",
+                    topics: [
+                        { name: "2.1. Nenhum Ser Vivo é uma Ilha", content: "Cada ser vivo está enredado numa teia de interações essenciais. Estas conexões permitem obter alimento, abrigo, proteção ou reprodução." },
+                        { name: "2.2. As Relações Ecológicas", content: "Classificam-se em <b>Intraespecíficas</b> (mesma espécie) ou <b>Interespecíficas</b> (espécies diferentes)." },
+                        { name: "2.3. Entre a Cooperação e o Conflito", content: "Existem relações <b>Harmónicas</b> (positivas, sem prejuízo) e <b>Desarmónicas</b> (pelo menos um é prejudicado, como no predatismo)." },
+                        { name: "2.4. A Convivência entre Espécies Diferentes", content: "A simbiose e o mutualismo permitem que espécies muito diferentes prosperem juntas, criando inovações evolutivas." },
+                        { name: "2.5. A Harmonia no Equilíbrio das Relações", content: "Até a predação é vital. Ela controla populações de herbívoros, garantindo que os produtores (plantas) não sejam extintos por consumo excessivo." }
+                    ]
+                }
+            ],
+            multimedia: [
+                { type: "video", title: "Documentário: Equilíbrio Florestal", description: "Observação das interações biológicas reais.", src: "./video.mp4" },
+                { type: "audio", title: "Podcast: A Teoria de Lynn Margulis", description: "Aprofundamento sobre a Simbiogénese.", src: "./podcast.mp3" }
+            ],
+            flashcards: [
+                { q: "O que é uma cadeia alimentar?", a: "Representação linear da transferência de energia e matéria entre organismos." },
+                { q: "O que caracteriza o mutualismo?", a: "Relação harmónica onde ambos beneficiam e a associação é frequentemente obrigatória." },
+                { q: "Que tipos de organismos são principalmente decompositores?", a: "Bactérias e fungos." },
+                { q: "Como ocorre a transferência de energia e matéria numa cadeia alimentar?", a: "Ocorre quando um organismo consome outro, assimilando os nutrientes e a energia contidos no ser consumido." },
+                { q: "Quais são os três componentes ou níveis tróficos principais de uma cadeia alimentar?", a: "Produtores, consumidores e decompositores." },
+                { q: "Qual é a principal diferença entre uma cadeia alimentar e uma teia alimentar?", a: "A primeira é uma representação linear e simplificada, enquanto a segunda interconecta várias cadeias alimentares." },
+                { q: "Quais são os principais produtores numa cadeia alimentar aquática?", a: "O fitoplâncton, como algas microscópicas e cianobactérias." },
+                { q: "Quais são os produtores predominantes numa cadeia alimentar terrestre?", a: "As plantas, como árvores, arbustos e gramíneas." },
+                { q: "Como se classificam as relações ecológicas quanto ao nível de interdependência?", a: "Podem ser intraespecíficas (mesma espécie) ou interespecíficas (espécies diferentes)." },
+                { q: "Como se classificam as relações ecológicas quanto aos benefícios ou prejuízos?", a: "Podem ser harmónicas (sem prejuízo) ou desarmónicas (com prejuízo para pelo menos um)." },
+                { q: "Que tipo de organismos forma a base de uma cadeia alimentar?", a: "Os produtores, que são organismos autotróficos." },
+                { q: "Qual é a principal forma de produção de energia utilizada pelos produtores?", a: "A fotossíntese, que utiliza a luz solar para sintetizar compostos orgânicos." },
+                { q: "Exemplo de uma sequência envolvendo um consumidor primário e um secundário.", a: "Um sapo (consumidor secundário) que come um gafanhoto (consumidor primário)." },
+                { q: "Qual é a função dos decompositores no ecossistema?", a: "Atuam na degradação da matéria orgânica morta, reciclando nutrientes e retornando-os ao ambiente." },
+                { q: "O que é a Simbiogénese?", a: "Teoria que diz que a cooperação e fusão de organismos são motores da inovação evolutiva." }
+            ],
+            glossary: [
+                { term: "Altruísmo Biológico", def: "Comportamento que reduz a aptidão do próprio indivíduo mas aumenta a de outros." },
+                { term: "Comensalismo", def: "Relação onde uma espécie beneficia (ex: restos) sem afetar a outra." },
+                { term: "Decompositores", def: "Fungos e bactérias que degradam matéria morta, reciclando nutrientes." },
+                { term: "Ecótono", def: "Zona de transição entre dois ecossistemas com alta biodiversidade." },
+                { term: "Simbiogénese", def: "Teoria proposta por Lynn Margulis que sugere que a cooperação e a fusão de organismos (simbiose) são um motor principal da inovação evolutiva, como na origem das células eucarióticas." },
+                { term: "Produtores", def: "Organismos autotróficos, como plantas e algas, que formam a base da cadeia alimentar ao sintetizarem a sua própria matéria orgânica a partir de compostos inorgânicos, geralmente através da fotossíntese." },
+                { term: "Haplodiploidia", def: "Um sistema de determinação sexual encontrado em insetos como abelhas e formigas, em que os machos se desenvolvem a partir de ovos não fertilizados (haploides) e as fêmeas de ovos fertilizados (diploides)." },
+                { term: "Altruísmo Biológico", def: "Comportamento que reduz a aptidão do próprio indivíduo mas aumenta a de outros." },
+                { term: "Consumidores", def: "Organismos heterotróficos que obtêm energia e nutrientes alimentando-se de outros seres vivos. Podem ser primários (herbívoros), secundários (carnívoros/onívoros), terciários, etc." },
+                { term: "Ecossistema", def: "Sistema complexo formado pelas interações entre as comunidades de seres vivos (comunidades bióticas) e o ambiente físico em que habitam." },
+                { term: "Mutualismo", def: "Relação interespecífica harmónica em que ambos os organismos se beneficiam de uma associação que é obrigatória e essencial para a sua sobrevivência." },
+                { term: "Parasitismo", def: "Relação onde o parasita extrai nutrientes do hospedeiro, prejudicando-o." }
+            ],
+            quiz: [
+                { 
+                    q: "Qual é a principal função de uma cadeia alimentar num ecossistema?", 
+                    options: ["Classificar os seres pelo habitat", "Descrever todas as relações possíveis", "Representar a transferência linear de energia e matéria", "Explicar apenas o papel das plantas"], 
+                    correct: 2, 
+                    feedback: "Correto! A cadeia alimentar mostra como a energia passa sequencialmente de um ser para outro.",
+                    hint: "A cadeia foca no fluxo unidirecional de quem come quem."
+                },
+                { 
+                    q: "Numa cadeia Erva -> Gafanhoto -> Sapo -> Cobra, que nível o sapo ocupa?", 
+                    options: ["Produtor", "Consumidor Primário", "Consumidor Secundário", "Consumidor Terciário"], 
+                    correct: 2,
+                    feedback: "Exato! Gafanhoto é o 1º consumidor, Sapo é o 2º.",
+                    hint: "Conte a partir do primeiro ser que come o produtor."
+                },
+                { 
+                    q: "Qual das seguintes opções descreve uma relação interespecífica desarmónica?", 
+                    options: ["Um bando de lobos a cooperar para caçar um alce.", "As orquídeas a crescerem nos troncos de árvores altas para obterem mais luz solar.", "Um leão a caçar uma zebra para se alimentar.", "As abelhas a polinizarem as flores de uma macieira enquanto recolhem néctar."], 
+                    correct: 2,
+                    feedback: "Exato! Esta interação, conhecida como predatismo, ocorre entre espécies diferentes e é desarmónica, pois é benéfica para o predador (leão), mas prejudicial para a presa (zebra).",
+                    hint: "Procure uma interação entre duas espécies diferentes em que pelo menos uma delas é prejudicada."
+                },
+                { 
+                    q: "O comportamento dos morcegos-vampiros que partilham sangue com outros membros do grupo que não conseguiram alimentar-se, muitas vezes não aparentados, é um exemplo clássico de:", 
+                    options: ["Parasitismo", "Seleção de parentesco", "Altruísmo recíproco", "Competição intraespecífica"], 
+                    correct: 2,
+                    feedback: "Exato! Este comportamento é frequentemente citado como um exemplo de 'eu ajudo-te hoje, tu ajudas-me amanhã', onde o benefício de receber ajuda quando se está em risco de vida supera o custo de dar ajuda ocasionalmente.",
+                    hint: "A ação baseia-se na expectativa de que o favor seja devolvido numa noite de azar."
+                },
+                { 
+                    q: "Qual é o papel fundamental dos decompositores (fungos e bactérias) num ecossistema?", 
+                    options: ["São a principal fonte de energia, convertendo luz solar em alimento.", "Transformam a matéria orgânica morta em nutrientes inorgânicos, que são reutilizados pelos produtores.", "Atuam como parasitas em todos os outros níveis tróficos, extraindo energia dos organismos vivos.", "Controlam as populações de herbívoros através da predação."], 
+                    correct: 1,
+                    feedback: "Exato! Este processo de reciclagem é essencial para fechar o ciclo da matéria, devolvendo ao solo ou à água os elementos necessários para o crescimento das plantas.",
+                    hint: "Pense neles como a equipa de reciclagem do ecossistema."
+                },
+                { 
+                    q: "A relação entre fungos e algas que formam os líquenes, onde ambos os organismos beneficiam e a associação é essencial para a sua sobrevivência, é um exemplo de:", 
+                    options: ["Comensalismo", "Protocooperação", "Mutualismo", "Inquilinismo"], 
+                    correct: 2,
+                    feedback: "Exato! Esta relação descreve uma interação obrigatória e mutuamente benéfica, onde a alga fornece matéria orgânica (fotossíntese) e o fungo oferece proteção e absorção de nutrientes.",
+                    hint: "Nesta relação ecológica, a cooperação é tão profunda que os organismos dependem um do outro para sobreviver."
+                },
+                { 
+                    q: "Como é que o sistema genético haplodiploide dos insetos sociais, como as abelhas, promove o comportamento altruísta das operárias?", 
+                    options: ["Faz com que todas as operárias sejam clones idênticos da rainha.", "Impede geneticamente que as operárias se reproduzam, forçando-as a ajudar.", "Assegura que os machos (zangões) sejam mais aparentados com as irmãs do que as fêmeas.", "Faz com que as fêmeas sejam mais aparentadas com as suas irmãs (75%) do que seriam com os seus próprios descendentes (50%)."], 
+                    correct: 3,
+                    feedback: "Exato! Este elevado grau de parentesco entre irmãs significa que, do ponto de vista genético, é mais vantajoso para uma operária ajudar a rainha a produzir mais irmãs do que ter a sua própria prole.",
+                    hint: "Analise o invulgar grau de parentesco genético entre as irmãs neste sistema reprodutivo."
+                },
+                { 
+                    q: "Qual é a principal diferença entre os produtores na base da maioria das cadeias alimentares aquáticas e terrestres?", 
+                    options: ["Os produtores terrestres são heterotróficos e os aquáticos são autotróficos.", "Os produtores terrestres não realizam fotossíntese, ao contrário dos aquáticos.", "As cadeias alimentares aquáticas não têm produtores; começam com consumidores primários.", "Os produtores aquáticos são principalmente o fitoplâncton, enquanto os produtores terrestres são predominantemente plantas."], 
+                    correct: 3,
+                    feedback: "Exato! Nos oceanos e lagos, a base da cadeia alimentar é composta por organismos microscópicos fotossintetizantes, ao passo que em terra são as plantas macroscópicas.",
+                    hint: "Compare as formas de vida fotossintetizantes dominantes no oceano e numa floresta."
+                },
+                { 
+                    q: "A teoria da simbiogénese, de Lynn Margulis, propõe que a cooperação foi um motor fundamental da evolução. Qual é o seu exemplo mais proeminente?", 
+                    options: ["A coevolução entre predadores e presas, levando a uma corrida armamentista adaptativa.", "A evolução de sociedades complexas em formigas e abelhas.", "A origem das células eucarióticas através da fusão de diferentes organismos procarióticos.", "O desenvolvimento do comportamento de caça cooperativa em lobos."], 
+                    correct: 2,
+                    feedback: "Exato! Esta teoria sugere que organelos como as mitocôndrias e os cloroplastos foram outrora bactérias de vida livre que foram englobadas por outras células, formando uma aliança permanente e criando um novo nível de complexidade biológica.",
+                    hint: "Esta teoria explica a origem de componentes fundamentais das nossas próprias células."
+                },
+                { 
+                    q: "A teoria da Simbiogénese sugere que:", 
+                    options: ["Apenas o mais forte sobrevive", "A cooperação é um motor principal da inovação evolutiva", "As espécies nunca se fundem", "A predação é a única regra"], 
+                    correct: 1,
+                    feedback: "Perfeito! A vida complexa surgiu da fusão cooperativa de seres simples.",
+                    hint: "Lembre-se da lição de Lynn Margulis sobre a trégua antiga."
+                }
+            ],
+            challenges: [
+                {
+                    problem: "Um agricultor removeu todas as cobras do seu campo para 'proteger' a família. Meses depois, a sua colheita foi totalmente destruída por ratos. Explique o erro biológico cometido.",
+                    solution: "As cobras controlavam a população de roedores (relação de predação). Sem o predador, o equilíbrio foi quebrado, causando uma explosão populacional dos ratos que consumiram os produtores (colheita)."
+                },
+                {
+                    problem: "Um fruticultor, incomodado com as picadas, utilizou um inseticida potente que eliminou todas as abelhas. No ano seguinte, as árvores floresceram, mas a produção de frutos foi nula. Explique o porquê.",
+                    solution: "Ocorreu a interrupção de uma relação de mutualismo. As abelhas realizam a polinização fundamental para a formação dos frutos em troca de néctar. Sem o polinizador, o ciclo reprodutivo das plantas falhou."
+                },
+                {
+                    problem: "Para 'limpar' o jardim, um morador aplicou um produto que eliminou fungos e bactérias do solo. Com o tempo, as folhas mortas acumularam-se sem desaparecer e as plantas começaram a murchar. Explique.",
+                    solution: "Foram eliminados os decompositores. Sem estes heróis da reciclagem, o ciclo da matéria foi interrompido, impedindo que os nutrientes voltassem ao solo para serem reabsorvidos pelas plantas."
+                }
+            ]
+        };
+
+        /* ========================================
+        ESTADO E LÓGICA
+        ========================================
+        */
+        let score = 0;
+        let currentFlashcardIdx = 0;
+        let currentQuizIdx = 0;
+        let currentChallengeIdx = 0;
+        let quizStats = { correct: 0, wrong: 0, total: 0 };
+
+        window.onload = () => {
+            renderSummaries();
+            renderGlossary();
+            renderFlashcard();
+            renderMultimedia();
+            updateScore(0);
+        };
+
+        function showSection(id) {
+            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('nav-' + id).classList.add('active');
+            document.querySelectorAll('video, audio').forEach(m => m.pause());
+            if(id !== 'desafios') document.getElementById('challenge-workspace').innerHTML = '';
+        }
+
+        // SALA DE ESTUDO
+        function renderSummaries() {
+            const container = document.getElementById('accordion-container');
+            container.innerHTML = APP_DATA.summaries.map((sec, idx) => `
+                <div class="accordion-item" id="acc-${idx}">
+                    <div class="accordion-header" onclick="toggleAccordion(${idx})">
+                        ${sec.title} <span>▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        ${sec.topics.map(t => `<div style="margin-bottom:1.5rem;"><b>${t.name}</b><p>${t.content}</p></div>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleAccordion(idx) {
+            const el = document.getElementById(`acc-${idx}`);
+            const wasOpen = el.classList.contains('open');
+            document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+            document.querySelectorAll('.accordion-content').forEach(c => c.style.display = 'none');
+            if(!wasOpen) {
+                el.classList.add('open');
+                el.querySelector('.accordion-content').style.display = 'block';
+            }
+        }
+
+        // FLASHCARDS
+        function renderFlashcard() {
+            const display = document.getElementById('flashcard-display');
+            const card = APP_DATA.flashcards[currentFlashcardIdx];
+            display.innerHTML = `
+                <div class="card" onclick="this.classList.toggle('flipped')">
+                    <div class="card-inner">
+                        <div class="card-front"><p style="font-size:1.2rem;">${card.q}</p></div>
+                        <div class="card-back"><p>${card.a}</p></div>
+                    </div>
+                </div>
+                <div style="margin-top:2rem; display:flex; justify-content:center; gap:10px;">
+                    <button class="btn-action" onclick="prevCard()">Anterior</button>
+                    <button class="btn-action" onclick="nextCard()">Próximo</button>
+                </div>
+                <p style="text-align:center; margin-top:10px;">${currentFlashcardIdx + 1} de ${APP_DATA.flashcards.length}</p>
+            `;
+        }
+
+        function nextCard() { currentFlashcardIdx = (currentFlashcardIdx + 1) % APP_DATA.flashcards.length; renderFlashcard(); }
+        function prevCard() { currentFlashcardIdx = (currentFlashcardIdx - 1 + APP_DATA.flashcards.length) % APP_DATA.flashcards.length; renderFlashcard(); }
+
+        // GLOSSÁRIO
+        function renderGlossary() {
+            const display = document.getElementById('glossary-display');
+            display.innerHTML = APP_DATA.glossary.map(item => `<div class="glossary-item"><b>${item.term}</b><p>${item.def}</p></div>`).join('');
+        }
+
+        // MULTIMÉDIA
+        function renderMultimedia() {
+            const display = document.getElementById('media-display');
+            display.innerHTML = APP_DATA.multimedia.map(item => `
+                <div class="media-item">
+                    <h3>${item.title}</h3>
+                    <p>${item.description}</p>
+                    ${item.type === 'video' ? `<video controls><source src="${item.src}"></video>` : `<audio controls src="${item.src}"></audio>`}
+                </div>
+            `).join('');
+        }
+
+        // QUESTIONÁRIO (COM FEEDBACK E RELATÓRIO)
+        function initQuiz() {
+            currentQuizIdx = 0;
+            quizStats = { correct: 0, wrong: 0, total: APP_DATA.quiz.length };
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const workspace = document.getElementById('challenge-workspace');
+            const q = APP_DATA.quiz[currentQuizIdx];
+            
+            if(!q) {
+                renderQuizReport();
+                return;
+            }
+
+            workspace.innerHTML = `
+                <div class="quiz-container">
+                    <small>Pergunta ${currentQuizIdx + 1} de ${APP_DATA.quiz.length}</small>
+                    <h3 style="margin:1rem 0;">${q.q}</h3>
+                    <div id="quiz-options">
+                        ${q.options.map((opt, i) => `<button class="option-btn" onclick="checkAnswer(${i}, ${q.correct}, this)">${opt}</button>`).join('')}
+                    </div>
+                    <div id="quiz-feedback" class="feedback-box"></div>
+                    <button id="next-q-btn" class="btn-action" style="display:none; margin-top:1.5rem;" onclick="currentQuizIdx++; renderQuizQuestion()">Próxima Pergunta</button>
+                </div>
+            `;
+        }
+
+        function checkAnswer(sel, cor, btn) {
+            const q = APP_DATA.quiz[currentQuizIdx];
+            const opts = document.querySelectorAll('.option-btn');
+            const feedback = document.getElementById('quiz-feedback');
+            
+            opts.forEach(b => b.disabled = true);
+            
+            if(sel === cor) {
+                btn.classList.add('correct');
+                quizStats.correct++;
+                updateScore(10);
+                feedback.innerHTML = `<b>Muito bem!</b> ${q.feedback}`;
+                feedback.className = "feedback-box feedback-correct";
+            } else {
+                btn.classList.add('wrong');
+                opts[cor].classList.add('correct');
+                quizStats.wrong++;
+                feedback.innerHTML = `<b>Quase lá...</b> ${q.hint}`;
+                feedback.className = "feedback-box feedback-wrong";
+            }
+            
+            feedback.style.display = 'block';
+            document.getElementById('next-q-btn').style.display = 'block';
+        }
+
+        function renderQuizReport() {
+            const workspace = document.getElementById('challenge-workspace');
+            const precision = Math.round((quizStats.correct / quizStats.total) * 100);
+            
+            workspace.innerHTML = `
+                <div class="report-card">
+                    <h2>Relatório Final de Aprendizagem</h2>
+                    <div class="stat-grid">
+                        <div class="stat-item"><div class="stat-value">${score}</div><small>Pontuação</small></div>
+                        <div class="stat-item"><div class="stat-value">${precision}%</div><small>Precisão</small></div>
+                        <div class="stat-item"><div class="stat-value" style="color:#28a745">${quizStats.correct}</div><small>Certas</small></div>
+                        <div class="stat-item"><div class="stat-value" style="color:#dc3545">${quizStats.wrong}</div><small>Erradas</small></div>
+                    </div>
+                    <button class="btn-action" onclick="initQuiz()">Repetir Quiz</button>
+                </div>
+            `;
+        }
+
+        // DESAFIOS ECOLÓGICOS (OS 3 DESAFIOS)
+        function showEcologicalChallenge() {
+            const workspace = document.getElementById('challenge-workspace');
+            const c = APP_DATA.challenges[currentChallengeIdx];
+            
+            workspace.innerHTML = `
+                <div class="quiz-container">
+                    <small>Desafio ${currentChallengeIdx + 1} de ${APP_DATA.challenges.length}</small>
+                    <h3>Situação Biológica</h3>
+                    <p style="margin:1rem 0; font-style:italic; border-left:4px solid var(--accent-color); padding-left:1rem;">${c.problem}</p>
+                    <textarea id="challenge-resp" style="width:100%; height:80px; margin-bottom:1rem; padding:10px; font-family:inherit;" placeholder="Escreva a sua análise..."></textarea>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-action" onclick="revealSol()">Ver Solução</button>
+                        <button id="next-c-btn" class="btn-action" style="display:none; background:#28a745;" onclick="nextC()">Próximo Desafio</button>
+                    </div>
+                    <div id="sol-box" class="feedback-box feedback-correct" style="margin-top:1rem;"><b>Resolução Sugerida:</b><br>${c.solution}</div>
+                </div>
+            `;
+        }
+
+        function revealSol() {
+            if(document.getElementById('challenge-resp').value.length < 10) return alert("Por favor, fundamente a sua resposta primeiro.");
+            document.getElementById('sol-box').style.display = 'block';
+            document.getElementById('next-c-btn').style.display = 'inline-block';
+            updateScore(5);
+        }
+
+        function nextC() {
+            currentChallengeIdx = (currentChallengeIdx + 1) % APP_DATA.challenges.length;
+            showEcologicalChallenge();
+        }
+
+        // JOGO DE ASSOCIAÇÃO
+        let selGame = null;
+        function initMatchGame() {
+            const workspace = document.getElementById('challenge-workspace');
+            const items = [...APP_DATA.glossary].sort(() => 0.5 - Math.random()).slice(0, 5);
+            const cards = [...items.map(i => ({t:'term', v:i.term, id:i.term})), ...items.map(i => ({t:'def', v:i.def, id:i.term}))].sort(() => 0.5 - Math.random());
+            workspace.innerHTML = `
+                <div class="game-container">
+                    <h3>Minijogo de Associação</h3>
+                    <div class="matching-grid">${cards.map(c => `<div class="matching-item" data-id="${c.id}" data-type="${c.t}" onclick="handleMatch(this)">${c.v}</div>`).join('')}</div>
+                </div>
+            `;
+        }
+
+        function handleMatch(el) {
+            if(el.classList.contains('matched') || el.classList.contains('selected')) return;
+            el.classList.add('selected');
+            if(!selGame) { selGame = el; } 
+            else {
+                if(selGame !== el && selGame.dataset.id === el.dataset.id && selGame.dataset.type !== el.dataset.type) {
+                    selGame.classList.add('matched'); el.classList.add('matched'); updateScore(15);
+                } else { selGame.classList.remove('selected'); el.classList.remove('selected'); }
+                selGame = null;
+            }
+        }
+
+        function updateScore(p) { score += p; document.getElementById('global-score').innerText = score; }
+    </script>
+</body>
+</html>
